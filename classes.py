@@ -19,7 +19,7 @@ class Book:    # базовый класс книги
 
 class FictionBook(Book): #художетсвенная
     def genre_description(self) -> None:
-        print(f"Книга '{self.title}' предлагает захватывающий вымысел, который погрузит вас в фантастический мир.")
+        print(f"Книга '{self.title}' — это бессмертное произведение, которое отражает культурное наследие и глубину человеческой мысли.")
 
 class ScienceBook(Book): #
     def genre_description(self) -> None:
