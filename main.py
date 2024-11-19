@@ -1,5 +1,4 @@
 import json
-#from curses.ascii import isdigit
 from exceptions import InvalidGenreException, InvalidFileTypeException
 from BookFactory import BookFactory
 
