@@ -1,44 +1,85 @@
-from classes import( Book, FictionBook,ScienceBook, HistoricalBook, HorrorBook, PoetryBook,
-                     BiographyBook, AdventureBook, RomanceBook, MysteryBook, FantasyBook)
 import json
-from exceptions import InvalidGenreException, InvalidFileTypeException
+from classes import Book, Author, Genre, FictionBook, Textbook, LibraryUser
+from exceptions import InvalidFileTypeException, InvalidGenreException
 
 class BookFactory:
-    genres = {
-        "классика": lambda genre, title, author: FictionBook(genre, title, author),
-        "научная": lambda genre, title, author: ScienceBook(genre, title, author),
-        "фантастика": lambda genre, title, author: FantasyBook(genre, title, author),
-        "мистика": lambda genre, title, author: MysteryBook(genre, title, author),
-        "романтика": lambda genre, title, author: RomanceBook(genre, title, author),
-        "история": lambda genre, title, author: HistoricalBook(genre, title, author),
-        "ужасы": lambda genre, title, author: HorrorBook(genre, title, author),
-        "биография": lambda genre, title, author: BiographyBook(genre, title, author),
-        "приключения": lambda genre, title, author: AdventureBook(genre, title, author),
-        "поэма": lambda genre, title, author: PoetryBook(genre, title, author),
-    }
+    @staticmethod
+    def create_book(genre, title, author, year_published, **kwargs):
+        if genre.genre_name == "учебный":
+            return Textbook(title, author, year_published, kwargs.get("subject"), kwargs.get("level"))
+        elif genre.genre_name == "художественный":
+            return FictionBook(title, author, year_published, genre)
+        else:
+            raise InvalidGenreException(genre.genre_name)
 
     @staticmethod
-    def create_book(genre, title, author):
-        """Создаёт книгу в зависимости от жанра."""
-        if genre not in BookFactory.genres:
-            raise InvalidGenreException(genre)
-        return BookFactory.genres[genre](genre, title, author)
-    @staticmethod
     def save_to_json(books, filename):
-        """Сохраняет книги в JSON файл."""
-        if ".json" not in filename:
-            raise InvalidFileTypeException(filename)
-        with open(filename, "w") as file:
-            json.dump([book.to_dict() for book in books], file)
+        if not filename.endswith(".json"):
+            raise InvalidFileTypeException(filename.split(".")[-1])
+
+        book_list = []
+        for book in books:
+            book_data = {
+                "title": book.title,
+                "author": {"name": book.author.name, "birth_year": book.author.birth_year},
+                "year_published": book.year_published,
+            }
+            book_list.append(book_data)
+
+        with open(filename, "w", encoding="utf-8") as file:
+            json.dump(book_list, file, ensure_ascii=False, indent=4)
 
     @staticmethod
     def load_from_json(filename):
-        """Загружает книги из JSON файла."""
-        if ".json" not in filename:
-            raise InvalidFileTypeException(filename)
-        with open(filename, "r") as file:
-            books_data = json.load(file)
-            return [
-                BookFactory.create_book(book["genre"], book["title"], book["author"])
-                for book in books_data
-            ]
+        if not filename.endswith(".json"):
+            raise InvalidFileTypeException(filename.split(".")[-1])
+
+        with open(filename, "r", encoding="utf-8") as file:
+            book_list = json.load(file)
+
+        books = []
+        for book_data in book_list:
+            author = Author(book_data["author"]["name"], book_data["author"]["birth_year"])
+            book = Book(book_data["title"], author, book_data["year_published"])
+            books.append(book)
+
+        return books
+
+class UserFactory:
+        @staticmethod
+        def save_users_to_json(users, borrow_records, filename):
+            user_list = []
+            for user in users:
+                has_debt = any(record.library_user == user and record.is_not_returned() for record in borrow_records)
+                user_data = {
+                    "name": user.name,
+                    "last_name": user.last_name,
+                    "address": user.address,
+                    "phone": user.phone,
+                    "has_debt": has_debt,
+                }
+                user_list.append(user_data)
+
+            with open(filename, "w", encoding="utf-8") as file:
+                json.dump(user_list, file, ensure_ascii=False, indent=4)
+
+        @staticmethod
+        def load_users_from_json(filename):
+            with open(filename, "r", encoding="utf-8") as file:
+                user_list = json.load(file)
+
+            users = []
+
+            for user_data in user_list:
+                user = LibraryUser(
+                    user_data["name"],
+                    user_data["last_name"],
+                    user_data["address"],
+                    user_data["phone"],
+
+                )
+                user.has_debt = user_data.get("has_debt")
+                users.append(user)
+
+            return users
+
