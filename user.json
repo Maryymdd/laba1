@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Даниил ",
+        "last_name": "Лапаев",
+        "address": "калмыкия",
+        "phone": "88005553535",
+        "has_debt": false
+    },
+    {
+        "name": "Мария",
+        "last_name": "Швейкина",
+        "address": "вадковский",
+        "phone": "880005553535",
+        "has_debt": true
+    }
+]
